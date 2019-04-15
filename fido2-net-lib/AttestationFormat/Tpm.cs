@@ -510,6 +510,9 @@ namespace Fido2NetLib.AttestationFormat
                 // Attributes. In accordance with RFC 5280[11], this extension MUST be critical if subject is empty 
                 // and SHOULD be non-critical if subject is non-empty"
 
+                // On macOS, SAN contains:
+                // "DirName:<unsupported>"
+
                 // Best I can figure to do for now?
                 if (false == SAN.Contains("TPMManufacturer") || false == SAN.Contains("TPMModel") ||
                     false == SAN.Contains("TPMVersion"))
@@ -820,7 +823,7 @@ namespace Fido2NetLib.AttestationFormat
         public byte[] CurveID { get; private set; }
         public byte[] KDF { get; private set; }
         public byte[] Unique { get; private set; }
-        public TpmEccCurve EccCurve { get { return (TpmEccCurve)Enum.Parse(typeof(TpmEccCurve), BitConverter.ToUInt16(CurveID.Reverse().ToArray(), 0).ToString()); }}
+        public TpmEccCurve EccCurve { get { return (TpmEccCurve)Enum.Parse(typeof(TpmEccCurve), BitConverter.ToUInt16(CurveID.Reverse().ToArray(), 0).ToString()); } }
         public ECPoint ECPoint
         {
             get

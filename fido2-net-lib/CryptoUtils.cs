@@ -100,18 +100,18 @@ namespace Fido2NetLib
             var kty = coseKey[CBORObject.FromObject(COSE.KeyCommonParameters.kty)].AsInt32();
             var alg = coseKey[CBORObject.FromObject(COSE.KeyCommonParameters.alg)].AsInt32();
             var crv = 0;
-            if (COSE.KeyTypes.OKP == (COSE.KeyTypes) kty || COSE.KeyTypes.EC2 == (COSE.KeyTypes) kty)
+            if (COSE.KeyTypes.OKP == (COSE.KeyTypes)kty || COSE.KeyTypes.EC2 == (COSE.KeyTypes)kty)
                 crv = coseKey[CBORObject.FromObject(COSE.KeyTypeParameters.crv)].AsInt32();
             switch (kty) // https://www.iana.org/assignments/cose/cose.xhtml#key-type
             {
-                case (int) COSE.KeyTypes.OKP: // OKP
+                case (int)COSE.KeyTypes.OKP: // OKP
                     {
                         switch (alg) // https://www.iana.org/assignments/cose/cose.xhtml#algorithms
                         {
-                            case (int) COSE.Algorithms.EdDSA:
+                            case (int)COSE.Algorithms.EdDSA:
                                 switch (crv) // https://www.iana.org/assignments/cose/cose.xhtml#elliptic-curves
                                 {
-                                    case (int) COSE.EllipticCurves.Ed25519:
+                                    case (int)COSE.EllipticCurves.Ed25519:
                                         var message = GetHasher(HashAlgorithmName.SHA512).ComputeHash(data);
                                         var publicKey = coseKey[CBORObject.FromObject(COSE.KeyTypeParameters.x)].GetByteString();
                                         return Chaos.NaCl.Ed25519.Verify(sig, message, publicKey);
@@ -122,7 +122,7 @@ namespace Fido2NetLib
                                 throw new ArgumentOutOfRangeException(string.Format("Missing or unknown alg {0}", alg.ToString()));
                         }
                     }
-                case (int) COSE.KeyTypes.EC2: // EC2
+                case (int)COSE.KeyTypes.EC2: // EC2
                     {
                         var point = new ECPoint
                         {
@@ -132,31 +132,31 @@ namespace Fido2NetLib
                         ECCurve curve;
                         switch (alg) // https://www.iana.org/assignments/cose/cose.xhtml#algorithms
                         {
-                            case (int) COSE.Algorithms.ES256:
+                            case (int)COSE.Algorithms.ES256:
                                 switch (crv) // https://www.iana.org/assignments/cose/cose.xhtml#elliptic-curves
                                 {
-                                    case (int) COSE.EllipticCurves.P256:
-                                    case (int) COSE.EllipticCurves.P256K:
+                                    case (int)COSE.EllipticCurves.P256:
+                                    case (int)COSE.EllipticCurves.P256K:
                                         curve = ECCurve.NamedCurves.nistP256;
                                         break;
                                     default:
                                         throw new ArgumentOutOfRangeException(string.Format("Missing or unknown crv {0}", crv.ToString()));
                                 }
                                 break;
-                            case (int) COSE.Algorithms.ES384:
+                            case (int)COSE.Algorithms.ES384:
                                 switch (crv) // https://www.iana.org/assignments/cose/cose.xhtml#elliptic-curves
                                 {
-                                    case (int) COSE.EllipticCurves.P384:
+                                    case (int)COSE.EllipticCurves.P384:
                                         curve = ECCurve.NamedCurves.nistP384;
                                         break;
                                     default:
                                         throw new ArgumentOutOfRangeException(string.Format("Missing or unknown crv {0}", crv.ToString()));
                                 }
                                 break;
-                            case (int) COSE.Algorithms.ES512:
+                            case (int)COSE.Algorithms.ES512:
                                 switch (crv) // https://www.iana.org/assignments/cose/cose.xhtml#elliptic-curves
                                 {
-                                    case (int) COSE.EllipticCurves.P521:
+                                    case (int)COSE.EllipticCurves.P521:
                                         curve = ECCurve.NamedCurves.nistP521;
                                         break;
                                     default:
@@ -174,9 +174,9 @@ namespace Fido2NetLib
                         var ecsig = SigFromEcDsaSig(sig, cng.KeySize);
                         return cng.VerifyData(data, ecsig, algMap[alg]);
                     }
-                case (int) COSE.KeyTypes.RSA: // RSA
+                case (int)COSE.KeyTypes.RSA: // RSA
                     {
-                        var rsa = new RSACng();
+                        var rsa = RSACng.Create(); // new RSACng(); <--- Windows only. Throws System.PlatformNotSupportedException : Windows Cryptography Next Generation (CNG) is not supported on this platform.
                         rsa.ImportParameters(
                             new RSAParameters()
                             {
@@ -188,16 +188,16 @@ namespace Fido2NetLib
                         switch (alg) // https://www.iana.org/assignments/cose/cose.xhtml#algorithms
                         {
 
-                            case (int) COSE.Algorithms.PS256:
-                            case (int) COSE.Algorithms.PS384:
-                            case (int) COSE.Algorithms.PS512:
+                            case (int)COSE.Algorithms.PS256:
+                            case (int)COSE.Algorithms.PS384:
+                            case (int)COSE.Algorithms.PS512:
                                 padding = RSASignaturePadding.Pss;
                                 break;
 
-                            case (int) COSE.Algorithms.RS1:
-                            case (int) COSE.Algorithms.RS256:
-                            case (int) COSE.Algorithms.RS384:
-                            case (int) COSE.Algorithms.RS512:
+                            case (int)COSE.Algorithms.RS1:
+                            case (int)COSE.Algorithms.RS256:
+                            case (int)COSE.Algorithms.RS384:
+                            case (int)COSE.Algorithms.RS512:
                                 padding = RSASignaturePadding.Pkcs1;
                                 break;
                             default:
@@ -345,14 +345,14 @@ namespace Fido2NetLib
 
             // throw revoked certs into a list so someday we eventually cache CRLs 
             var revoked = new List<long>();
-            for (var i = 0;i < revokedCertificates.ChildNodeCount;i++)
+            for (var i = 0; i < revokedCertificates.ChildNodeCount; i++)
             {
                 revoked.Add(Asn1Util.BytesToLong(revokedCertificates.GetChildNode(i).GetChildNode(0).Data.Reverse().ToArray()));
             }
 
             if (revoked.Contains(Asn1Util.BytesToLong(cert.GetSerialNumber())))
                 return true;
-            
+
             else return false;
         }
     }
